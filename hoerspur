@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# hoerspur — Hörbücher an ihrer Zeitachse erkennen, neu schneiden, benennen, taggen.
+# Dry-Run per Default; geschrieben wird erst mit --apply.
+set -euo pipefail
+
+here="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+for dir in "$here" "$here/.." "${HOME}/.local/share/hoerspur"; do
+    if [[ -f "$dir/hoerspur.py" ]]; then script="$dir/hoerspur.py"; break; fi
+done
+[[ -n "${script:-}" ]] || { echo "hoerspur.py nicht gefunden" >&2; exit 1; }
+
+python3 - <<'PY' || { echo "Bitte 'mutagen' installieren: pip install --user mutagen" >&2; exit 1; }
+import sys
+try: import mutagen
+except ImportError: sys.exit(1)
+PY
+
+exec python3 -u "$script" "$@"
